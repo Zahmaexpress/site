@@ -174,8 +174,10 @@
             })
           });
 
-          const data = await res.json();
-          trackBtn.disabled = false;
+          const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('ar-EG'); // تنسيق التاريخ بشكل مناسب للغة العربية
+};
 
           if (data.success) {
             // Convert shipping date and last update to date only format

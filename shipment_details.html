@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Track Shipment - Zahma Express</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo&display=swap" rel="stylesheet" />
+    <style>
+      body {
+        font-family: 'Cairo', sans-serif;
+        margin: 0;
+        padding: 0;
+        background: url(https://i.imgur.com/FOcDiTB.jpeg) no-repeat center center fixed;
+        background-size: cover;
+      }
+
+      .track-container {
+        width: 100%;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #1b1b1b99; /* Semi-transparency */
+      }
+
+      .track-box {
+        background: rgba(255, 255, 255, 0.9);
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        width: 400px;
+        text-align: center;
+      }
+
+      .track-box h2 {
+        font-size: 2rem;
+        color: #333;
+        margin-bottom: 20px;
+        font-weight: bold;
+      }
+
+      .input-field {
+        width: 100%;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        font-size: 1rem;
+      }
+
+      .input-field:focus {
+        border: 2px solid #f76c6c;
+        outline: none;
+      }
+
+      .track-btn {
+        background-color: #f55703; /* New color */
+        color: white;
+        border: none;
+        padding: 15px;
+        width: 100%;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1.2rem;
+        margin-top: 15px;
+        transition: background 0.3s;
+      }
+
+      .track-btn:hover {
+        background-color: #d94d00; /* Change color on hover */
+      }
+
+      .shipment-details {
+        margin-top: 20px;
+        text-align: right;
+      }
+
+      .shipment-details p {
+        font-size: 1rem;
+        margin: 10px 0;
+      }
+
+      .status-update {
+        margin-top: 20px;
+        text-align: right;
+      }
+
+      .status-update input {
+        padding: 10px;
+        width: 80%;
+        margin-right: 10px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+      }
+
+      .status-update button {
+        padding: 10px;
+        background-color: #f55703;
+        color: white;
+        border: none;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: background 0.3s;
+      }
+
+      .status-update button:hover {
+        background-color: #d94d00;
+      }
+
+      .message {
+        color: #d9534f;
+        margin-top: 15px;
+        font-size: 1rem;
+      }
+
+      .logo {
+        width: 120px;
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="track-container">
+      <div class="track-box">
+        <img src="https://i.imgur.com/GO7wZEZ.png" alt="Zahma Express Logo" class="logo" />
+        <h2>Track Shipment</h2>
+
+        <form onsubmit="trackShipment(event)">
+          <input
+            type="text"
+            id="trackingId"
+            class="input-field"
+            placeholder="Tracking Number"
+            required
+          />
+          <button type="submit" class="track-btn">Track</button>
+        </form>
+
+        <div id="shipmentDetails" class="shipment-details">
+          <!-- Shipment details will be shown here after search -->
+        </div>
+
+        <div id="statusUpdate" class="status-update" style="display:none;">
+          <label for="newStatus">Update Status:</label>
+          <input type="text" id="newStatus" />
+          <button onclick="updateStatus()">Update Status</button>
+        </div>
+
+        <p class="message" id="message"></p>
+      </div>
+    </div>
+
+    <script>
+      async function trackShipment(e) {
+        e.preventDefault();
+        
+        const trackingId = document.getElementById('trackingId').value.trim();
+        const message = document.getElementById('message');
+        const shipmentDetails = document.getElementById('shipmentDetails');
+        const statusUpdate = document.getElementById('statusUpdate');
+        const trackBtn = document.querySelector('.track-btn');
+
+        message.innerText = 'Searching...';
+        trackBtn.disabled = true;
+
+        try {
+          const res = await fetch("https://script.google.com/macros/s/AKfycbzJDp60Lror6gSh4DpnU3u3p2disAG74pWWbsLFpydDTraI_IBxbrPX4CHPZ0fl9Gs/exec", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: new URLSearchParams({
+              trackingId
+            })
+          });
+
+          const data = await res.json();
+          trackBtn.disabled = false;
+
+          if (data.success) {
+            shipmentDetails.innerHTML = `
+              <p><strong>Tracking Number:</strong> ${data.trackingId}</p>
+              <p><strong>Customer Name:</strong> ${data.customerName}</p>
+              <p><strong>Shipping Date:</strong> ${data.shippingDate}</p>
+              <p><strong>Delivery Address:</strong> ${data.deliveryAddress}</p>
+              <p><strong>Shipment Status:</strong> ${data.status}</p>
+              <p><strong>Last Update:</strong> ${data.lastUpdate}</p>
+            `;
+
+            if (data.role === 'admin') {
+              statusUpdate.style.display = 'block'; // If user is admin, show status update form
+            } else {
+              statusUpdate.style.display = 'none';
+            }
+
+            message.innerText = '';
+          } else {
+            message.innerText = 'Shipment not found or invalid tracking number.';
+          }
+        } catch (error) {
+          message.innerText = 'An error occurred. Please try again later.';
+          trackBtn.disabled = false;
+        }
+      }
+
+      async function updateStatus() {
+        const trackingId = document.getElementById('trackingId').value.trim();
+        const newStatus = document.getElementById('newStatus').value.trim();
+        const message = document.getElementById('message');
+
+        if (!newStatus) {
+          message.innerText = 'Please enter a new status.';
+          return;
+        }
+
+        message.innerText = 'Updating status...';
+
+        try {
+          const res = await fetch("https://script.google.com/macros/s/AKfycbx6Zs5HU4mMKKRTkVcDcdOlu1PGH-OzHP1_6rhtEpenkfcLhJF02PGUts1sxnk0Y3GS/exec", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: new URLSearchParams({
+              trackingId,
+              newStatus
+            })
+          });
+
+          const data = await res.json();
+          if (data.success) {
+            message.innerText = 'Status updated successfully!';
+            trackShipment(event); // Reload shipment details after update
+          } else {
+            message.innerText = 'Failed to update status.';
+          }
+        } catch (error) {
+          message.innerText = 'An error occurred. Please try again later.';
+        }
+      }
+    </script>
+  </body>
+</html>

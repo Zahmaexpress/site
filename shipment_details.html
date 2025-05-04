@@ -178,13 +178,19 @@
           trackBtn.disabled = false;
 
           if (data.success) {
+            // Convert shipping date and last update to date only format
+            const formatDate = (dateString) => {
+              const date = new Date(dateString);
+              return date.toLocaleDateString('en-GB'); // For format: dd/mm/yyyy
+            };
+
             shipmentDetails.innerHTML = `
-              <p><strong>Tracking Number:</strong> ${data.trackingId}</p>
+              <p><strong>Tracking Number:</strong> ${trackingId}</p>
               <p><strong>Customer Name:</strong> ${data.customerName}</p>
-              <p><strong>Shipping Date:</strong> ${data.shippingDate}</p>
+              <p><strong>Shipping Date:</strong> ${formatDate(data.shippingDate)}</p>
               <p><strong>Delivery Address:</strong> ${data.deliveryAddress}</p>
               <p><strong>Shipment Status:</strong> ${data.status}</p>
-              <p><strong>Last Update:</strong> ${data.lastUpdate}</p>
+              <p><strong>Last Update:</strong> ${formatDate(data.lastUpdate)}</p>
             `;
 
             if (data.role === 'admin') {

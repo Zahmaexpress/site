@@ -154,6 +154,7 @@
       async function trackShipment(e) {
         e.preventDefault();
         
+        const trackingId = document.getElementById('trackingId').value.trim();
         const message = document.getElementById('message');
         const shipmentDetails = document.getElementById('shipmentDetails');
         const statusUpdate = document.getElementById('statusUpdate');
@@ -173,10 +174,8 @@
             })
           });
 
-          const formatDate = (dateString) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('ar-EG'); // تنسيق التاريخ بشكل مناسب للغة العربية
-};
+          const data = await res.json();
+          trackBtn.disabled = false;
 
           if (data.success) {
             // Convert shipping date and last update to date only format

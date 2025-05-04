@@ -123,12 +123,41 @@
         btn.disabled = true;
         btn.innerText = "Logging in...";
 
-        try {
-          // Send the data to Google Apps Script API
-          const res = await fetch("https://script.google.com/macros/s/AKfycbxpemziGtd6paqM1x6mriRK0rN7w8_Mi-1I8xZWpCoxecqLRwqbMuWBn0AXc4d1vz43kA/exec", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/x-www-form-urlencoded"
+      try {
+  const res = await fetch("https://script.google.com/macros/s/AKfycbxpemziGtd6paqM1x6mriRK0rN7w8_Mi-1I8xZWpCoxecqLRwqbMuWBn0AXc4d1vz43kA/exec", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: new URLSearchParams({
+      username,
+      password
+    })
+  });
+
+  const data = await res.json(); // استجابة السيرفر
+
+  if (data.success) {
+    if (data.Role === "admin") {
+      alert("Welcome, you will be redirected to the shipment tracking page.");
+      window.location.href = "https://zahmaexpress.github.io/site/shipment_details.html";
+    }
+  } else {
+    if (data.error === "wrong_password") {
+      msg.innerText = "كلمة المرور غير صحيحة. حاول تاني.";
+    } else if (data.error === "user_not_found") {
+      msg.innerText = "اسم المستخدم غير موجود. تأكد من البيانات.";
+    } else {
+      msg.innerText = "فشل في تسجيل الدخول. حاول مرة تانية.";
+    }
+    btn.disabled = false;
+    btn.innerText = "Login";
+  }
+} catch (error) {
+  msg.innerText = "حصل خطأ في الاتصال. حاول مرة تانية لاحقًا.";
+  btn.disabled = false;
+  btn.innerText = "Login";
+}
   },
   body: new URLSearchParams({
     username,
